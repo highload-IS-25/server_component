@@ -13,7 +13,7 @@ storage = StorageInterface(logger)
 
 
 @app.get("/keys/{key}")
-def read_key(key: str):
+async def read_key(key: str):
     value = StorageInterface.get(key)
     if value is None:
         raise HTTPException(status_code=404, detail="Key not found")
@@ -21,7 +21,7 @@ def read_key(key: str):
 
 
 @app.put("/keys/{key}")
-def write_key(key: str, value: str = Query(...)):
+async def write_key(key: str, value: str = Query(...)):
     StorageInterface.set(key, value)
     return {"status": "success"}
 
