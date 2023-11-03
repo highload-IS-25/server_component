@@ -27,6 +27,7 @@ class MemTable:
 
     def _empty(self):
         self.data = self.tree_factory.get_tree()
+        self.__size = 0
 
     def get_size(self):
         return self.__size

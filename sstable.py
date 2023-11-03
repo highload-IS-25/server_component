@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional
 from bisect import bisect
-
+import zlib
 
 class SSTable:
     def __init__(self, filename, block_size):
@@ -17,9 +17,11 @@ class SSTable:
         with open(file_path, 'wb') as out:
 
             data = list(memtable.data.items())
-            self.__hash.update({data[0][0]: 0})
+            # self.__hash.update({data[0][0]: 0})
+            self.__hash[data[0][0]] = 0
             key = data[0][0].encode('utf-8')
             value = data[0][1].encode('utf-8')
+
             pair_string = bytearray(len(key).to_bytes(8, byteorder='big'))
             pair_string.extend(key)
             pair_string.extend(len(value).to_bytes(8, byteorder='big'))
@@ -37,6 +39,8 @@ class SSTable:
                 pair_string.extend(value)
                 if current_block_len + len(pair_string) > self.__block_size:  # проверяем что вышли за блок
                     self.__hash.update({data[i - 1][0]: last_key_offset})  # в хэш записываем предыдущий
+                    current_block = zlib.compress(current_block)
+                    current_block_len = len(current_block)
                     out.write(current_block_len.to_bytes(8, byteorder='big'))
                     out.write(current_block)  # вот тут нужно сжатие + как-то зафиксировать длину
                     current_block_len = 0  # сбрасываем длину блока
@@ -46,6 +50,8 @@ class SSTable:
                 current_block_len += len(pair_string)
                 current_block.extend(pair_string)
             if current_block_len != 0:
+                current_block = zlib.compress(current_block)
+                current_block_len = len(current_block)
                 out.write(current_block_len.to_bytes(8, byteorder='big'))
                 out.write(current_block)
 
@@ -60,6 +66,7 @@ class SSTable:
             block_size = int.from_bytes(f.read(8), byteorder='big')
             f.seek(8)
             data = f.read(block_size)
+            data = zlib.decompress(data)
             i = 0
 
             while i < len(data):

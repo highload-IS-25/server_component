@@ -1,6 +1,7 @@
 import time
 from typing import Optional
 
+from logger import Logger
 from mem_table import MemTable, SSTable
 from types_enum import Type
 from sstable import SSTable
@@ -12,12 +13,17 @@ class LSM:
         self.segments_list = []
         self.mem_table_size = mem_table_size
         self.time_merging = time_merging  # ну не придумала как назвать!! это короче сколько он спит прежде чем мержит
+        self.logger = Logger()
+        for key, value in self.logger.recover():
+            self.add_item(key, value)
 
     def add_item(self, key: str, value: str):
         if self.mem_table.get_size() == self.mem_table_size:
             new_segment = self.mem_table.write_to_file()
             self.segments_list.append(new_segment)
+            self.logger.clear_log()
         self.mem_table.write(key, value)
+        self.logger.log_write(key, value)
 
     def get_item(self, key: str) -> Optional[str]:
         item = self.mem_table.read(key)

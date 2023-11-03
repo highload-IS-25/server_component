@@ -7,7 +7,6 @@ from types_enum import Type
 
 class StorageInterface:
     def __init__(self, logger):
-        self.__logger = logger
         self.lsm = LSM(block_size=4000, time_merging=2, mem_table_size=2, file_size=400000, mem_table_type=Type.RBTREE)
 
     storage_dir = "data_storage"
