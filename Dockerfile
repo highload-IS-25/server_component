@@ -10,6 +10,6 @@ COPY . .
 
 VOLUME ["/app/data_storage"]
 
-EXPOSE $PORT
+EXPOSE $STORAGE_PORT
 
-CMD uvicorn server_component:app --host $HOST --port $PORT
+CMD uvicorn server_component:app --host $STORAGE_HOST --port $STORAGE_PORT

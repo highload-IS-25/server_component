@@ -1,46 +1,38 @@
 import os
+import random
 from typing import Optional
 import logging
 from filelock import FileLock
+import redis
 
 class StorageInterface:
-    def __init__(self, logger):
+    def __init__(self, logger, master_config, replica_configs):
         self.__logger = logger
-
-    storage_dir = "data_storage"
-
-    @classmethod
-    def _get_file_path(cls, key: str) -> str:
-        return os.path.join(cls.storage_dir, key)
-
-    @classmethod
-    def _get_file_lock_path(cls, key: str) -> str:
-        return f"{cls._get_file_path(key)}.lock"
+        self.master_client = redis.StrictRedis(**master_config, decode_responses=True)
+        self.replica_clients = [redis.StrictRedis(**config, decode_responses=True) for config in replica_configs]
 
     def get(self, key: str) -> Optional[str]:
-        file_path = self._get_file_path(key)
-        lock = FileLock(self._get_file_lock_path(key))
+        try:
+            replica = random.choice(self.replica_clients + [self.master_client])
+            self.__logger.info(f"\nRead k:'{key}' from{replica.connection_pool.connection_kwargs['host']}")
+            value = replica.get(key)
 
-        with lock:
-            try:
-                if os.path.exists(file_path):
-                    with open(file_path, 'r') as file:
-                        return file.read()
-            except Exception as e:
-                self.__logger.error(f"Error reading the file: {e}")
+            if value is not None:
+                self.__logger.info(f"\nRetrieved '{key}' with value: {value}")
+            else:
+                self.__logger.warning(f"\n Key '{key}' not found.")
 
-        return None
+            return value
+
+        except Exception as e:
+            self.__logger.error(f"Error reading key '{key}' from Redis: {e}")
+            return None
 
     def set(self, key: str, value: str):
-        lock = FileLock(self._get_file_lock_path(key))
-
-        with lock:
-            try:
-                os.makedirs(self.storage_dir, exist_ok=True)
-                file_path = self._get_file_path(key)
-                with open(file_path, 'w') as file:
-                    file.write(value)
-            except Exception as e:
-                self.__logger.error(f"Error writing to the file: {e}")
+        try:
+            self.__logger.info(f"Write key '{key}' with value '{value}'.")
+            self.master_client.set(key, value)
+        except Exception as e:
+            self.__logger.error(f"Error writing key '{key}' with value '{value}' to Redis master: {e}")
 
 

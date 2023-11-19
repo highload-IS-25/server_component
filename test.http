@@ -1,0 +1,17 @@
+### Set value for numberOne
+PUT http://localhost:8000/keys/numberOne?value=12345
+
+### Get value for numberOne
+GET http://localhost:8000/keys/numberOne
+
+### Set value for numberTwo
+PUT http://localhost:8000/keys/numberTwo?value=4321
+
+### Get value for numberTwo
+GET http://localhost:8000/keys/numberTwo
+
+### Get value for numberTwo
+GET http://localhost:8000/keys/numberThree
+
+### ping
+GET http://localhost:8000/ping_redis
