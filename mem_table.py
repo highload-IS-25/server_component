@@ -1,10 +1,8 @@
-from bintrees import AVLTree
-from bintrees import RBTree
-from bintrees import FastBinaryTree
 from types_enum import Type
 from tree_factory import TreeFactory
 from sstable import SSTable
 import datetime
+
 
 class MemTable:
 

@@ -8,7 +8,7 @@ class Logger:
 
     def log_write(self, key, value):
         with open(self.log_file, 'a') as log:
-            log_entry = f"{key},{json.dumps(value)}\n"
+            log_entry = "{},{}\n".format(key, json.dumps(value))
             print(log_entry)
             log.write(log_entry)
 

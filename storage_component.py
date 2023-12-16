@@ -4,10 +4,12 @@ import logging
 from filelock import FileLock
 from lsm import LSM
 from types_enum import Type
+import asyncio
 
 class StorageInterface:
     def __init__(self, logger):
-        self.lsm = LSM(block_size=4000, time_merging=2, mem_table_size=2, file_size=400000, mem_table_type=Type.RBTREE)
+        self.lsm = LSM(block_size=4000, time_merging=10, mem_table_size=2, file_size=400000, mem_table_type=Type.RBTREE)
+        # asyncio.run(auto_merge(self.lsm))
 
     storage_dir = "data_storage"
 
